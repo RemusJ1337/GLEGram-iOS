@@ -1,6 +1,6 @@
 # GLEGram iOS
 
-GLEGram — privacy-focused Telegram iOS client based on [Swiftgram](https://github.com/nicegram/nicegram-ios) and [Telegram iOS](https://github.com/nicegram/nicegram-ios).
+GLEGram — privacy-focused Telegram iOS client based on [Swiftgram](https://github.com/Swiftgram/Telegram-iOS) and [Telegram iOS](https://github.com/TelegramMessenger/Telegram-iOS).
 
 **Base version:** Telegram 12.5 / Swiftgram 12.5
 
@@ -117,8 +117,8 @@ GLEGram code is organized in `GLEGram/` folder. All patches to Telegram source f
 
 ## Credits
 
-- [Telegram iOS](https://github.com/nicegram/nicegram-ios) — Original Telegram client
-- [Swiftgram](https://github.com/nicegram/nicegram-ios) — Base fork with additional features
+- [Telegram iOS](https://github.com/TelegramMessenger/Telegram-iOS) — Original Telegram client
+- [Swiftgram](https://github.com/Swiftgram/Telegram-iOS) — Base fork with additional features
 
 ## License
 

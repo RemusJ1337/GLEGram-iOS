@@ -37,7 +37,19 @@ jobs:
         run: |
           set -euo pipefail
           git submodule sync --recursive
-          git submodule update --init --recursive --depth 1
+          git submodule update --init --recursive --depth 1 || true
+          mkdir -p build-system/bazel-rules
+          for repo in \
+            rules_apple \
+            rules_swift \
+            apple_support \
+            rules_xcodeproj \
+            sourcekit-bazel-bsp
+          do
+            if [[ ! -d "build-system/bazel-rules/${repo}" ]]; then
+              git clone --depth 1 "https://github.com/$(git config -f .gitmodules --get submodule.build-system/bazel-rules/${repo}.url | sed 's#https://github.com/##')" "build-system/bazel-rules/${repo}"
+            fi
+          done
           test -d build-system/bazel-rules/sourcekit-bazel-bsp
 
       - name: Validate required secrets

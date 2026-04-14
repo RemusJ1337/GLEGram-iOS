@@ -52,6 +52,22 @@ jobs:
           done
           test -d build-system/bazel-rules/sourcekit-bazel-bsp
 
+      - name: Restore missing bazel-utils from Telegram upstream
+        run: |
+          set -euo pipefail
+          if [[ ! -d build-system/bazel-utils ]]; then
+            tmp_dir="$(mktemp -d)"
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/TelegramMessenger/Telegram-iOS.git "$tmp_dir/telegram-upstream"
+            cd "$tmp_dir/telegram-upstream"
+            git sparse-checkout set build-system/bazel-utils
+            cd "$GITHUB_WORKSPACE"
+            mkdir -p build-system
+            cp -R "$tmp_dir/telegram-upstream/build-system/bazel-utils" build-system/
+            rm -rf "$tmp_dir"
+          fi
+          test -f build-system/bazel-utils/plist_fragment.bzl
+          test -f build-system/bazel-utils/spm.bzl
+
       - name: Validate required secrets
         env:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}

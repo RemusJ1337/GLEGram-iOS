@@ -33,6 +33,13 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Force submodule initialization
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git submodule update --init --recursive --depth 1
+          test -d build-system/bazel-rules/sourcekit-bazel-bsp
+
       - name: Validate required secrets
         env:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}

@@ -71,7 +71,7 @@ genrule(
     cp -R "$$SOURCE_PATH" "$$BUILD_DIR/"
 
     pushd "$$BUILD_DIR/libvpx"
-    patch -p1 < ../0001-Support-arm64-simulator.patch
+    patch -N -p1 < ../0001-Support-arm64-simulator.patch || patch --forward -p1 < ../0001-Support-arm64-simulator.patch || true
     popd
 
     mkdir -p "$$BUILD_DIR/Public/libvpx"

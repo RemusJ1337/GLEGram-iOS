@@ -147,14 +147,14 @@ jobs:
           if [[ ! -f third-party/opus/prebuilt/arm64/libopus.a ]]; then
             rm -rf third-party/opus/build-arm64
             mkdir -p third-party/opus/build-arm64
-            sh third-party/opus/build-opus-bazel.sh arm64 third-party/opus/build-arm64 third-party/opus/opus-1.5.1.tar.gz
+            sh third-party/opus/build-opus-bazel.sh arm64 third-party/opus/build-arm64 ../opus-1.5.1.tar.gz
             cp third-party/opus/build-arm64/built/lib/libopus.a third-party/opus/prebuilt/arm64/libopus.a
           fi
 
           if [[ ! -f third-party/opus/prebuilt/sim_arm64/libopus.a ]]; then
             rm -rf third-party/opus/build-sim_arm64
             mkdir -p third-party/opus/build-sim_arm64
-            sh third-party/opus/build-opus-bazel.sh sim_arm64 third-party/opus/build-sim_arm64 third-party/opus/opus-1.5.1.tar.gz
+            sh third-party/opus/build-opus-bazel.sh sim_arm64 third-party/opus/build-sim_arm64 ../opus-1.5.1.tar.gz
             cp third-party/opus/build-sim_arm64/built/lib/libopus.a third-party/opus/prebuilt/sim_arm64/libopus.a
           fi
 

@@ -200,6 +200,7 @@ jobs:
             --buildNumber="$BUILD_NUMBER" \
             --target "GLEGram" \
             --disableExtensions \
+            --disableProvisioningProfiles \
             --outputBuildArtifactsPath="build/artifacts"
 
       - name: Verify build artifacts

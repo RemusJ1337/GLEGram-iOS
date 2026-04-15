@@ -141,6 +141,9 @@ jobs:
           set -euo pipefail
           cd /Users/Shared/telegram-ios
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
+          security default-keychain -d user
+          security list-keychains -d user
+          security find-identity -v temp.keychain || true
 
       - name: Regenerate fake provisioning profiles for self-signed cert
         run: |
@@ -154,6 +157,15 @@ jobs:
             --source build-system/fake-codesigning/profiles \
             --destination build-system/generated-fake-codesigning/profiles \
             --certs build-system/generated-fake-codesigning/certs
+
+      - name: Validate generated signing assets
+        run: |
+          set -euo pipefail
+          cd /Users/Shared/telegram-ios
+          test -f build-system/generated-fake-codesigning/profiles/Telegram.mobileprovision
+          test -f build-system/generated-fake-codesigning/certs/SelfSigned.p12
+          security find-identity -v temp.keychain | tee /tmp/glegram-identities.txt
+          grep -q "Apple Distribution\\|iPhone Distribution\\|Self Signed" /tmp/glegram-identities.txt
 
       - name: Restore missing Opus prebuilts
         run: |

@@ -10,7 +10,7 @@ on:
       bundle_id:
         description: "Bundle ID for the build"
         required: false
-        default: "com.example.glegram.trollstore"
+        default: "ph.telegra.Telegraph"
       team_id:
         description: "Team ID used in generated config"
         required: false
@@ -119,7 +119,7 @@ jobs:
           with open("build-system/ipa-build-configuration.json", "r", encoding="utf-8") as fh:
               config = json.load(fh)
 
-          config["bundle_id"] = os.environ.get("INPUT_BUNDLE_ID") or "com.example.glegram.trollstore"
+          config["bundle_id"] = os.environ.get("INPUT_BUNDLE_ID") or "ph.telegra.Telegraph"
           config["api_id"] = os.environ["TELEGRAM_API_ID"]
           config["api_hash"] = os.environ["TELEGRAM_API_HASH"]
           config["team_id"] = os.environ.get("INPUT_TEAM_ID") or "C67CF9S4VU"

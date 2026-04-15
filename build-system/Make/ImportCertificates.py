@@ -35,6 +35,14 @@ def import_certificates(certificatesPath):
         existing_keychains
     ], check_result=True)
 
+    run_executable_with_output('security', arguments=[
+        'default-keychain',
+        '-d',
+        'user',
+        '-s',
+        keychain_name
+    ], check_result=True)
+
     run_executable_with_output('security', arguments=['set-keychain-settings', keychain_name])
     run_executable_with_output('security', arguments=['unlock-keychain', '-p', keychain_password, keychain_name])
 

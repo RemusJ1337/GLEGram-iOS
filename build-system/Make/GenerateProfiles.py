@@ -211,3 +211,17 @@ def generate_provisioning_profiles(source_path, destination_path, certs_path):
         ))
     finally:
         cleanup_temp_keychain(keychain_name)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='GenerateProfiles')
+    parser.add_argument('--source', required=True, help='Source directory with .mobileprovision files')
+    parser.add_argument('--destination', required=True, help='Destination directory for regenerated profiles')
+    parser.add_argument('--certs', required=True, help='Directory containing SelfSigned.p12')
+
+    args = parser.parse_args()
+    generate_provisioning_profiles(
+        source_path=args.source,
+        destination_path=args.destination,
+        certs_path=args.certs,
+    )

@@ -50,7 +50,12 @@ jobs:
               git clone --depth 1 "https://github.com/$(git config -f .gitmodules --get submodule.build-system/bazel-rules/${repo}.url | sed 's#https://github.com/##')" "build-system/bazel-rules/${repo}"
             fi
           done
+          if [[ ! -f "third-party/libvpx/libvpx/build/make/configure.sh" ]]; then
+            rm -rf third-party/libvpx/libvpx
+            git clone --depth 1 "https://github.com/webmproject/libvpx.git" "third-party/libvpx/libvpx"
+          fi
           test -d build-system/bazel-rules/sourcekit-bazel-bsp
+          test -f third-party/libvpx/libvpx/build/make/configure.sh
 
       - name: Restore missing bazel-utils from Telegram upstream
         run: |

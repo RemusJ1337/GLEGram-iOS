@@ -142,6 +142,19 @@ jobs:
           cd /Users/Shared/telegram-ios
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
 
+      - name: Regenerate fake provisioning profiles for self-signed cert
+        run: |
+          set -euo pipefail
+          cd /Users/Shared/telegram-ios
+          rm -rf build-system/generated-fake-codesigning
+          mkdir -p build-system/generated-fake-codesigning/profiles
+          mkdir -p build-system/generated-fake-codesigning/certs
+          cp build-system/fake-codesigning/certs/* build-system/generated-fake-codesigning/certs/
+          python3 build-system/Make/GenerateProfiles.py \
+            --source build-system/fake-codesigning/profiles \
+            --destination build-system/generated-fake-codesigning/profiles \
+            --certs build-system/generated-fake-codesigning/certs
+
       - name: Restore missing Opus prebuilts
         run: |
           set -euo pipefail
@@ -195,12 +208,11 @@ jobs:
             --bazelUserRoot="$BAZEL_USER_ROOT" \
             build \
             --configurationPath="build-system/github-actions-configuration.json" \
-            --codesigningInformationPath="build-system/fake-codesigning" \
+            --codesigningInformationPath="build-system/generated-fake-codesigning" \
             --configuration="release_arm64" \
             --buildNumber="$BUILD_NUMBER" \
             --target "GLEGram" \
             --disableExtensions \
-            --disableProvisioningProfiles \
             --outputBuildArtifactsPath="build/artifacts"
 
       - name: Verify build artifacts

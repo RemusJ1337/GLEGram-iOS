@@ -199,6 +199,7 @@ jobs:
             --configuration="release_arm64" \
             --buildNumber="$BUILD_NUMBER" \
             --target "GLEGram" \
+            --disableExtensions \
             --outputBuildArtifactsPath="build/artifacts"
 
       - name: Verify build artifacts

@@ -136,25 +136,69 @@ jobs:
               json.dump(config, fh, indent=2)
           PY
 
-      - name: Import fake signing certificates
-        run: |
-          set -euo pipefail
-          cd /Users/Shared/telegram-ios
-          python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
-          security default-keychain -d user
-          security list-keychains -d user
-          security find-identity -v temp.keychain || true
-
-      - name: Regenerate fake provisioning profiles for self-signed cert
+      - name: Create self-signed signing certificate
         run: |
           set -euo pipefail
           cd /Users/Shared/telegram-ios
           rm -rf build-system/generated-fake-codesigning
           mkdir -p build-system/generated-fake-codesigning/profiles
           mkdir -p build-system/generated-fake-codesigning/certs
-          cp build-system/fake-codesigning/certs/* build-system/generated-fake-codesigning/certs/
+          cp build-system/fake-codesigning/profiles/* build-system/generated-fake-codesigning/profiles/
+
+          security delete-keychain temp.keychain >/dev/null 2>&1 || true
+          security create-keychain -p secret temp.keychain
+          security list-keychains -d user -s temp.keychain
+          security default-keychain -d user -s temp.keychain
+          security unlock-keychain -p secret temp.keychain
+          security set-keychain-settings temp.keychain
+
+          CERT_NAME="Self Signed GLEGram"
+          security import build-system/AppleWWDRCAG3.cer -k temp.keychain -T /usr/bin/codesign -T /usr/bin/security || true
+          security create-keypair -h || true
+
+          cat > /tmp/glegram-cert.tmpl <<'EOF'
+[ req ]
+default_bits = 2048
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[ req_distinguished_name ]
+CN = Self Signed GLEGram
+O = GLEGram
+C = US
+
+[ v3_req ]
+keyUsage = critical, digitalSignature
+extendedKeyUsage = codeSigning
+basicConstraints = critical, CA:false
+subjectKeyIdentifier = hash
+EOF
+
+          openssl req -new -newkey rsa:2048 -nodes -x509 -days 3650 \
+            -config /tmp/glegram-cert.tmpl \
+            -keyout /tmp/glegram.key \
+            -out /tmp/glegram.crt
+
+          openssl pkcs12 -export \
+            -inkey /tmp/glegram.key \
+            -in /tmp/glegram.crt \
+            -out build-system/generated-fake-codesigning/certs/SelfSigned.p12 \
+            -passout pass:
+
+          cp /tmp/glegram.crt build-system/generated-fake-codesigning/certs/Public.cer
+          security import build-system/generated-fake-codesigning/certs/SelfSigned.p12 -k temp.keychain -P '' -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -k secret temp.keychain
+          security default-keychain -d user
+          security list-keychains -d user
+          security find-identity -v temp.keychain
+
+      - name: Regenerate fake provisioning profiles for self-signed cert
+        run: |
+          set -euo pipefail
+          cd /Users/Shared/telegram-ios
           python3 build-system/Make/GenerateProfiles.py \
-            --source build-system/fake-codesigning/profiles \
+            --source build-system/generated-fake-codesigning/profiles \
             --destination build-system/generated-fake-codesigning/profiles \
             --certs build-system/generated-fake-codesigning/certs
 

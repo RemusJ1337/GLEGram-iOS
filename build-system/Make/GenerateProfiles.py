@@ -57,22 +57,8 @@ def cleanup_temp_keychain(keychain_name):
 
 def get_signing_identity_from_p12(p12_path, p12_password=''):
     """Extract the common name (signing identity) from the p12 certificate."""
-    # Try with -legacy first
-    proc = subprocess.Popen(
-        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys', '-legacy'],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    cert_pem, _ = proc.communicate()
-
-    # If legacy fails, try without -legacy
-    if not cert_pem or b'error' in cert_pem.lower():
-        proc = subprocess.Popen(
-            ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        cert_pem, _ = proc.communicate()
-
-    if not cert_pem:
+    cert_pem = _extract_certificate_pem_from_p12(p12_path, p12_password)
+    if cert_pem is None:
         return None
 
     proc2 = subprocess.Popen(
@@ -94,24 +80,27 @@ def get_signing_identity_from_p12(p12_path, p12_password=''):
     return None
 
 
+def _extract_certificate_pem_from_p12(p12_path, p12_password=''):
+    commands = [
+        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-clcerts', '-nokeys'],
+        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-clcerts', '-nokeys', '-legacy'],
+        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys'],
+        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys', '-legacy'],
+    ]
+
+    for command in commands:
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, _ = proc.communicate()
+        if proc.returncode == 0 and b'BEGIN CERTIFICATE' in stdout:
+            return stdout
+
+    return None
+
+
 def get_certificate_base64_from_p12(p12_path, p12_password=''):
     """Extract the certificate as base64 from p12 file."""
-    # Extract certificate in PEM format - try without -legacy first (newer openssl doesn't support it)
-    proc = subprocess.Popen(
-        ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys'],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    cert_pem, stderr = proc.communicate()
-
-    # If that fails, try with -legacy (older openssl)
-    if not cert_pem or b'error' in stderr.lower() or b'unable' in stderr.lower() or b'MAC' not in stderr:
-        proc = subprocess.Popen(
-            ['openssl', 'pkcs12', '-in', p12_path, '-passin', 'pass:' + p12_password, '-nokeys', '-legacy'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        cert_pem, _ = proc.communicate()
-
-    if not cert_pem or b'CERTIFICATE' not in cert_pem:
+    cert_pem = _extract_certificate_pem_from_p12(p12_path, p12_password)
+    if cert_pem is None:
         return None
 
     # Convert to DER format
@@ -121,7 +110,7 @@ def get_certificate_base64_from_p12(p12_path, p12_password=''):
     )
     cert_der, _ = proc2.communicate(cert_pem)
 
-    if not cert_der:
+    if proc2.returncode != 0 or not cert_der:
         return None
 
     return base64.b64encode(cert_der).decode('utf-8')
